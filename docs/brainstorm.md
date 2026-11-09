@@ -382,6 +382,56 @@ The results hold across 3 seeds. ✅ **Omega learns that A *causes* sugar only w
 - Reconsolidation (unlock a link when its expected effect fails) is not implemented yet.
 - Inhibitory synapses don't learn yet.
 
+## Reality check: is v0 new?
+
+**No. Every mechanism in v0 already exists in published research.** v0 is a correct, small rebuild of known computational neuroscience. That's useful as a foundation and a sanity check, but it is not a breakthrough.
+
+| v0 mechanism | Prior work |
+|---|---|
+| STDP tags + dopamine (three-factor learning) | Izhikevich 2007, *Solving the distal reward problem*; many since (review: arXiv 2504.05341, 2025) |
+| Synaptic tagging and capture | Frey & Morris 1997; models by Clopath 2008 and Ziegler 2015 |
+| STDP + homeostasis + synaptic scaling | SORN (Lazar et al., 2009) |
+| Sleep downscaling against forgetting | Tononi & Cirelli (SHY); Tadros, Krishnan & Bazhenov, *Nat. Comms* 2022; sleep regularization preprints (2026) |
+| Overgrow → prune | Navlakha et al., 2015 (decreasing-rate pruning) |
+| Synapse "permanence" and growth/pruning for continual learning | Numenta HTM |
+| Fly-inspired continual learning | FlyHash (Dasgupta et al., *Science* 2017); Shen, Dasgupta & Navlakha, *PNAS* 2023 |
+| On-chip local learning | Intel Loihi, SpiNNaker, IBM TrueNorth |
+
+### Where this approach has failed before
+
+1. **Credit assignment in deep networks.** Local rules work when the cause is directly connected to the effect, as in our A → approach test. They fail when the cause is several layers away: *which of millions of hidden synapses deserves credit?* Backprop solves this; local rules mostly don't. **This is the main reason deep learning won.**
+2. **No hierarchy of concepts emerges.** Spiking and local-rule networks learn associations and simple features, but nobody has made them grow layers of abstraction (edges → shapes → objects → ideas) the way cortex does.
+3. **They stay at toy scale.** Results come from conditioning tasks and MNIST. Scaling up is still listed as an open problem (2025 review).
+4. **Fragile, hand-tuned parameters.** Seizures, runaway loops and silent networks, exactly what we hit in v0.
+5. **Big brain simulations without learning.** Blue Brain and Spaun (2.5M neurons, 8 tasks, hand-designed) had no open-ended learning.
+6. **No body, no world, no purpose.** Almost all of this work trains on datasets, not through a lifetime of acting in a world.
+
+### What could actually be new in Omega
+
+Not any single mechanism, but the full program, which nobody has run end to end:
+- **No pretraining and no backprop at all.** A lifetime of local learning only, judged by the Baby Test.
+- **An evolution outer loop (Part 2)** that writes the *rules*: plasticity, growth, pruning and drives. A newborn's learning ability is the thing being evolved. Pieces exist (evolved plasticity rules, AI-GAs), but not combined with overgrow/prune development and "Consume & Replicate" in an open-ended world.
+- **Solving failures 1 and 2.** If Omega can learn cause → effect across hidden layers and grow a hierarchy of concepts with local rules only, *that* would be new. **That's the next test to aim at.**
+
+### How close is v0 to a real brain?
+
+**The principles are real biology; the implementation is a cartoon.**
+
+| Real brain | Omega v0 |
+|---|---|
+| Neurons compute in their dendrites (one cortical neuron ≈ a small deep network) | Point neurons that add up input and fire |
+| Dozens of neuromodulators, targeted to specific compartments | One global dopamine signal |
+| Tagging windows of hours; sleep lasts hours and includes **replay** | 200 ms tags; sleep is a single function call with no replay |
+| Rich architecture: layers, regions, hippocampus, many cell types | One random recurrent network |
+| Glia (microglia do the pruning, astrocytes regulate synapses) | None |
+| Inhibitory synapses learn too | Fixed |
+| Axonal delays from 1 to 20+ ms | 1 step |
+| A body acting in a world | Sugar → approach is a hard-wired external input |
+| 86 billion neurons | 2,000 |
+
+**From the fly:** the task (one-shot smell → sugar conditioning), dopamine as the second key, the forward/backward timing test, and the innate sugar → approach reflex outside the learning network. **Not used yet:** the mushroom body's structure (expansion into sparse Kenyon cells, global inhibition through APL, output compartments).
+**From the human/mammal brain:** the 80/20 excitatory/inhibitory ratio (cortex), STDP (hippocampus/cortex), synaptic scaling, tagging and capture (hippocampus), threshold adaptation, sleep downscaling, and "big spines last."
+
 ## Open questions
 
 - Which brain parts and rules go into the seed genome, and which are left for evolution to find?
