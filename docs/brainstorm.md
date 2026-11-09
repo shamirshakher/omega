@@ -118,12 +118,228 @@ Intelligence  =  a by-product that improves survival and replication
 2. **The environment matters as much as the DNA.** Intelligence only pays off in a world that is rich, changing and competitive. Who builds that world, and how complex must it be?
 3. **Resource scarcity is required.** "Consume" only creates pressure if resources are limited.
 4. **Open-endedness.** How do we keep evolution from settling on a "good enough" simple replicator?
-5. **Starting level.** Do we start from random code (Computational Life), from simple cells, or from organisms that already have neurons?
+5. **Starting level.** *Decided:* start from what we already know about the brain, not from the first RNA molecule. See Part 3.
 6. **Measurement.** How do we detect that intelligence has emerged as a by-product?
+
+### Part 3: The shortcut — start from what we know about humans
+
+Evolution has already done ~4 billion years of work, and the result is the human brain. We know a lot about it, so we don't have to start from RNA.
+
+**Analogy: directed evolution** (Frances Arnold, Nobel Prize 2018). Protein engineers don't evolve proteins from scratch. They start from a known protein that works and evolve it toward a goal. Omega does the same with a brain.
+
+**Rule: our knowledge goes into the DNA, never into the brain.**
+
+| Allowed ✅ | Not allowed ❌ |
+|---|---|
+| Use neuroscience to design the starting genome: neuron types, circuits, plasticity rules, drives | Load knowledge, facts, language or trained weights into the brain |
+| Start from structure the way evolution left it | Start from a pretrained model (this fails the Baby Test) |
+
+**What we know well, and what we don't:**
+
+| Known: seed it | Unknown: evolve it |
+|---|---|
+| Neuron types and how they behave | The exact wiring rules of the human cortex |
+| Cortical layers and repeated columns | How the cortex actually computes |
+| Plasticity rules: Hebbian, STDP, dopamine-gated learning | How the parts combine into a mind |
+| Major circuits: thalamus → cortex (perception), basal ganglia (choosing actions), hippocampus (episodes), cerebellum (motor control) | The right sizes, ratios and parameters |
+| Drives, reflexes, and development by overgrowing then pruning | — |
+| What a baby's world looks like: a body, objects, a caregiver | — |
+
+The known parts become the **seed genome**. Evolution searches **only the unknown parameters**. The search space shrinks from "all possible life" to "variations of a brain that already works."
+
+**Lesson from failure: structure alone isn't enough.** The Blue Brain and Human Brain projects spent over €1B simulating brain structure in detail, and no intelligence emerged. Their simulations had no body, no drives, no world and no development. Omega's seed must include all of these, not just the wiring.
+
+### Principle: extract the pattern, don't copy the brain
+
+> **We are not emulating or evolving a fly, a mouse or a human. We are building Omega, the last AI.**
+
+Mapped brains are **study material**. From each one we extract the **pattern of learning**: *how* it learns, not *what* it is made of. Omega then recreates those patterns in its own way, with its own design and without biological baggage.
+
+- ❌ Run a connectome, simulate neurons one for one, add learning to a fly model
+- ✅ Ask what learning pattern the brain uses and why it works, then design Omega's own version
+
+Simple brains show the core patterns most clearly. More complex brains show what gets added on top of them.
+
+### Learning patterns extracted from the fly brain
+
+The fly is a good first subject: its whole brain is mapped, and it learns cause → effect, often in one trial. Its learning centre (the **mushroom body**) shows these patterns:
+
+**Adopted as core for Omega: patterns 2, 3, 4 and 5.** Pattern 1 must not be hard-coded. Sparse, separate codes should *emerge* from flexible neurons through competition and pruning (see Part 4).
+
+| # | Pattern in the fly | Why it works | What it means for Omega (our own design) |
+|---|---|---|---|
+| 1 | **Expansion + sparse coding.** ~50 smell-input channels fan out to ~2,000 Kenyon cells, and only ~5% fire for any one smell | Each experience gets its own nearly non-overlapping code, so new learning doesn't overwrite old learning | ⚠️ Don't hard-code it. Let sparse codes *emerge* from overgrowth + pruning (Part 4) |
+| 2 | **Three-factor learning.** A connection changes only when the input is active, the output is active *and* a value signal (dopamine) arrives | Learning is local and gated: no global training pass, no backprop | Learning is triggered by *meaningful events*, not by every input |
+| 3 | **One-shot learning.** One smell + sugar pairing creates a lasting memory | Strong value signals produce big, immediate changes | Omega learns from single experiences. The size of the change scales with how much the event matters |
+| 4 | **Timing = causality.** Smell *before* shock teaches "avoid". Smell *after* shock teaches "relief" (the opposite) | The order of events encodes what caused what | **Cause → effect at the most basic level:** Omega records *which came first*, not just what happened together |
+| 5 | **Innate and learned pathways in parallel.** The lateral horn holds built-in reactions; the mushroom body holds learned ones | Learning adjusts reflexes rather than replacing them, so the fly is never "untrained" | Omega is born with working drives and reflexes, and learning modulates them |
+| 6 | **Separate value channels.** Different dopamine neurons for reward and punishment, each acting on its own compartment | Different kinds of value are learned independently | Several value signals in parallel (food, danger, novelty), not a single reward number |
+| 7 | **Several memory timescales.** Short-, mid- and long-term memories live in different compartments | Fast memories capture events; slow ones keep what lasts | Fast capture → slow consolidation (matches the brain-inspired insight) |
+| 8 | **Active forgetting.** Dopamine also *erases* memories that are no longer useful | Keeps memory current and avoids clutter | Forgetting is a feature: Omega needs a deliberate forgetting mechanism |
+
+### Reference: which brains are mapped (Nov 2026)
+
+| Organism | Neurons | Status | What to study |
+|---|---|---|---|
+| Worm (*C. elegans*) | 302 | ✅ Complete | Reflexes, the simplest drives |
+| Fly larva | ~3,000 | ✅ Complete (2023) | The minimal learning circuit |
+| **Adult fruit fly** | **~139,000** | ✅ Complete (FlyWire, 2024) | **Core learning patterns (above)** |
+| Fly full CNS | ~166,000 | ✅ Complete (Janelia, 2026) | How the brain connects to the body |
+| Larval zebrafish | ~100,000 | 🟡 In progress | First vertebrate patterns |
+| Mouse | ~70 million | 🔴 1 mm³ of cortex only | Cortex and hippocampus patterns, from neuroscience research |
+| Human | ~86 billion | 🔴 Fragments | Language, reasoning, social learning, from neuroscience research |
+
+## Part 4: First approach — overgrow, then prune
+
+### How human neurons work (the essentials)
+
+| Part | What it does |
+|---|---|
+| **Dendrites** | Receive signals from up to thousands of other neurons |
+| **Cell body** | Adds up the incoming signals. When the total crosses a threshold, the neuron **fires a spike**, all or nothing |
+| **Axon** | Carries the spike to other neurons |
+| **Synapse** | The connection between two neurons. Each neuron has ~7,000 of them. Synapses are excitatory (push the next neuron to fire) or inhibitory (hold it back) |
+| **Synaptic strength** | Changes with use. Fire together → stronger (LTP); out of sync → weaker (LTD) |
+| **Spike timing (STDP)** | If A fires *just before* B, A→B gets stronger. If A fires *after* B, it gets weaker. **Order = causality** |
+| **Neuromodulators** | Dopamine and similar signals that tell the brain "this mattered, learn now" |
+| **Myelin** | Insulation that wraps paths used often. They become faster and more stable |
+
+### How a baby's brain develops: overgrow → compete → prune → stabilize
+
+1. **Overproduce.** The brain makes far more neurons and connections than it will keep. About half of the neurons made before birth die before birth. After birth, connections explode: a 2–3-year-old has about **50% more synapses than an adult**.
+2. **Compete.** Neurons and synapses compete for limited resources (growth factors). Active ones get the resources; inactive ones don't.
+3. **Prune: "use it or lose it."** Unused connections are removed, a process that continues through adolescence. Neurons that never become part of a working circuit die.
+4. **Stabilize.** Frequently used paths become strong and myelinated: **stable patterns**. These are knowledge and skills.
+5. **Keep some flexibility.** Adults keep a reserve of plasticity, and new synapses keep forming, so learning never stops.
+
+**The brain isn't built up like a wall. It's carved like a statue:** start with a block (dense random connections) and let experience remove what isn't needed.
+
+**Link to Part 2 (evolution):** this is **evolution inside the brain**. Connections compete for resources ("Consume"), and the useful ones survive and are reinforced. Neuroscience calls this *Neural Darwinism* (Edelman) and *selective stabilization* (Changeux). The same selection principle works at both scales: species over millions of years, and connections over a lifetime.
+
+### Omega v0: the overgrow-and-prune design
+
+| Stage | What Omega does |
+|---|---|
+| **Birth** | A large pool of flexible neurons with dense, random connections, plus innate drives and reflexes (pattern 5) |
+| **Experience** | Signals flow through the network as Omega acts in its world |
+| **Strengthen** | Connections strengthen when neurons fire in order (pattern 4: cause → effect), mostly when a value signal says "this mattered" (patterns 2 and 3) |
+| **Prune** | Connections that are unused or useless weaken and are removed. Neurons that are never used die |
+| **Stabilize** | Connections used often become stable and resistant to change. **This protects old knowledge without hard-coding it** |
+| **Reserve** | Keep a pool of flexible connections, and keep growing new ones, so new learning is always possible |
+
+**What should emerge rather than be designed:** sparse codes, separate memories, circuits and skills.
+
+**Related work and how Omega differs:** the *Lottery Ticket Hypothesis* (2019) showed that a large random network contains small subnetworks that work well. But it prunes *after* offline training with backprop. Omega prunes *during* life, driven by experience, with local learning rules.
+
+### Decision: Omega uses a neuron + synapse model
+
+Since overgrowth and pruning happen mainly in **synapses**, Omega needs **synapses as their own objects**, each with its own state that can grow, change, stabilize and be removed. They cannot be numbers hidden inside a weight matrix. What we keep from biology is the *behaviour*, not the chemistry.
+
+**Neuron (draft):** adds up its inputs → fires when it crosses a threshold → can die if it's never used.
+
+**Synapse (draft):**
+
+| Property | Meaning |
+|---|---|
+| `strength` | How strongly it drives the next neuron (positive = excitatory, negative = inhibitory) |
+| `stability` | How protected it is from change (0 = fluid, 1 = locked) |
+| `tag` | A temporary mark: "I was just active in something that may matter" |
+| `last_used` / `age` | For "use it or lose it" pruning |
+
+### What makes a connection stable? (answers from neuroscience)
+
+| # | Brain mechanism | What happens | Omega rule |
+|---|---|---|---|
+| 1 | **Synaptic tagging and capture** (Frey & Morris, 1997) | An active synapse gets a temporary **tag**. If an important event (e.g. a dopamine signal) happens within a time window, proteins arrive and the change is made **long-term**. Otherwise it fades within hours | **Two keys to lock a connection:** local activity (the tag) + a global "this mattered" signal. Activity alone → temporary change that fades |
+| 2 | **Spaced repetition** | Reactivating a memory over spaced intervals makes it far more stable than cramming | Each spaced reuse raises `stability` |
+| 3 | **Sleep consolidation** (Tononi & Cirelli) | During sleep the brain replays the day's experiences and **scales down all synapses**. Strong ones survive; weak ones fall below threshold and are pruned | A periodic **sleep phase:** replay tagged experiences, scale everything down, prune what falls too low, stabilize what remains |
+| 4 | **Spine size = stability** (Yang, Pan & Gan, 2009) | Large dendritic spines persist for months or a lifetime; small ones come and go within days | Strong, old synapses are hard to change; weak, new ones stay fluid |
+| 5 | **Reconsolidation** (Nader et al., 2000) | Recalling a stable memory makes it **unstable again for a while**, especially if the outcome doesn't match. It can then be updated and restabilized | **The anti-freeze rule:** when a stable cause → effect link is used and the expected effect *doesn't happen*, it unlocks for updating |
+| 6 | **Critical periods + perineuronal nets** | Early life is highly plastic. Then "nets" wrap mature circuits and lock them. Removing the nets (in animal experiments) reopens plasticity | Omega starts highly plastic and gradually locks core circuits. The locks are **releasable**, not permanent |
+| 7 | **Metaplasticity + homeostasis** (BCM theory) | The threshold for change shifts with a neuron's history, and neurons keep their total activity within a range | Limits that prevent runaway strengthening or a silent network |
+| 8 | **Competition for resources** (BDNF) | Active synapses capture limited growth factors; inactive ones starve and are removed | "Consume" at the synapse level: limited resources, so only useful synapses survive |
+
+**Answer to "freeze or forget":**
+- **Against forgetting:** the two-key lock (1), spaced reuse (2), sleep consolidation (3) and growing stability with strength and age (4).
+- **Against freezing:** reopening links when the expected effect doesn't happen (5), releasable locks (6), and a constant reserve of new, fluid synapses.
+
+### How neurons and synapses are stored in code
+
+**The brain is a sparse graph.** Neurons are nodes and synapses are edges. Each neuron connects to only a tiny fraction of the others, and the number of synapses differs from neuron to neuron. So:
+
+- ❌ **One object per synapse** (e.g. a Python object): easy to understand, but ~100+ bytes of overhead each and very slow at millions of synapses.
+- ❌ **Dense N × N matrix:** 99.99% of it would be empty, and it doesn't fit growth and pruning.
+- ✅ **A table of synapses stored as columns** (structure of arrays): one row per synapse, one array per property. Synapse `i` is index `i` across all the arrays. This is how spiking-network simulators (Brian2, NEST, GeNN) store synapses.
+
+**Neuron table:**
+
+| id | potential | threshold | last_spike | alive |
+|---|---|---|---|---|
+| 0 | 0.42 | 1.0 | t=1203 | ✅ |
+| 1 | 0.05 | 1.0 | t=987 | ✅ |
+
+**Synapse table:**
+
+| i | pre (from) | post (to) | strength | stability | tag | last_used |
+|---|---|---|---|---|---|---|
+| 0 | 0 | 17 | +0.80 | 0.9 | 0.0 | t=1203 |
+| 1 | 0 | 52 | −0.30 | 0.1 | 0.6 | t=1190 |
+| 2 | 1 | 17 | +0.15 | 0.0 | 0.0 | t=400 |
+
+Each column is one flat array (NumPy or GPU tensor):
+
+```python
+# neurons
+potential  = np.zeros(N, dtype=np.float32)
+threshold  = np.ones(N,  dtype=np.float32)
+alive      = np.ones(N,  dtype=bool)
+
+# synapses (one entry per synapse)
+pre        = np.array([...], dtype=np.uint32)   # from-neuron
+post       = np.array([...], dtype=np.uint32)   # to-neuron
+strength   = np.array([...], dtype=np.float16)  # + excitatory / - inhibitory
+stability  = np.array([...], dtype=np.float16)  # 0 = fluid, 1 = locked
+tag        = np.array([...], dtype=np.float16)  # decays over time
+last_used  = np.array([...], dtype=np.uint32)
+```
+
+**Key operations:**
+
+| Operation | How |
+|---|---|
+| Neuron X fires → find its outgoing synapses | Keep synapses sorted by `pre`, plus an `offsets` array: neuron X's synapses are `offsets[X] : offsets[X+1]` (CSR format) |
+| Grow a synapse | Write into a free slot (a free list) or append |
+| Prune a synapse | Mark the slot dead and add it to the free list. Compact and re-sort periodically, e.g. during **sleep** |
+| Learning updates | Vector operations on whole columns at once (fast on CPU or GPU) |
+
+**Event-driven processing:** only ~1–5% of neurons fire at any moment, so the work per step is just "the neurons that fired × their synapses", not the whole network. This is why brains (and Omega) can be large and still cheap.
+
+**Memory budget:** about **~18 bytes per synapse** (pre 4 + post 4 + strength 2 + stability 2 + tag 2 + last_used 4).
+
+| Scale | Neurons | Synapses | Memory | Hardware |
+|---|---|---|---|---|
+| Prototype | 10,000 | 10 million | ~180 MB | Laptop |
+| Fly-scale | 100,000 | 100 million | ~1.8 GB | Laptop |
+| Large | 1 million | 1 billion | ~18 GB | Workstation / GPU |
+| Human-scale | 86 billion | ~100 trillion | ~1.8 PB | Not feasible today |
+
+Overgrowth means starting at roughly 1.5× the target number of synapses and letting pruning bring it down.
+
+**Implementation path:** prototype in Python + NumPy (or PyTorch for GPU). Move the hot loop to Rust/C++/CUDA once the design is stable.
+
+**Risks to solve:**
+- **Too much stability** → Omega can't learn new things. Too little → it forgets. Getting the balance right is the stability–plasticity problem again, now handled by a mechanism instead of a fixed rule.
+- **The timing of pruning** (critical periods). If it prunes too early, Omega loses abilities it will need later.
+- **Compute.** Starting overgrown means starting large. We need to find the smallest "block" that still works.
 
 ## Open questions
 
-- What is the minimum "chemistry" (instruction set) for the first self-replicator?
+- Which brain parts and rules go into the seed genome, and which are left for evolution to find?
+- Which learning patterns are core to Omega, and which are fly-specific details?
+- What patterns do the mouse and human brains add on top of the fly's (cortex, hippocampus, language)?
+- What are the right time windows: how long does a tag last, and how often does Omega sleep?
+- Is the importance signal ("this mattered") innate (drives) only, or can it be learned?
+- How dense is "overgrown", and how much pruning is right?
 - What is the "world" (substrate and physics) that Omega's organisms live in?
 - When and how do neurons and plasticity rules first appear: are they evolved, or seeded?
 - How is a cause → effect link represented in an evolved brain?
