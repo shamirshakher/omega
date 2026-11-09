@@ -332,6 +332,56 @@ Overgrowth means starting at roughly 1.5× the target number of synapses and let
 - **The timing of pruning** (critical periods). If it prunes too early, Omega loses abilities it will need later.
 - **Compute.** Starting overgrown means starting large. We need to find the smallest "block" that still works.
 
+## Part 5: Omega v0 — first code
+
+**Code:** `omega/core.py` (the brain) and `experiments/first_light.py` (the first test).
+**Brain:** 2,000 neurons (20% inhibitory) and 200,000 synapses (overgrown), stored as column arrays. It runs at ~1.5 ms per step on a 2015 dual-core i5.
+
+**What's implemented:** spiking neurons, threshold adaptation (homeostasis), timing → tags (STDP), dopamine as the second key (tag → strength + stability), and sleep (consolidation, downscaling, synaptic scaling, pruning, neuron death, growth of new synapses).
+
+**First test (a fly-style, one-shot task, Omega's own brain):** smell A + sugar, once. Then test whether A alone triggers "approach".
+
+| Stage | A | B (control) | Nothing |
+|---|---|---|---|
+| Newborn | 13 | 21 | 12 |
+| After **one** A + sugar pairing | 1501 | 587 | 211 |
+| After sleep | **380** | 15 | 9 |
+| After learning B + sleep | **840** | **481** | 23 |
+
+(Approach spikes in 200 ms. The results hold across 4 random seeds.)
+
+✅ One-shot learning ✅ Specific (B unaffected) ✅ Survives sleep ✅ Learning B doesn't erase A
+
+### Lessons from building it (each one matched real brain biology)
+
+1. **Weak inhibition → seizure.** The first run became epileptic: one smell set off self-sustaining activity across the whole network. The fix was strong inhibition, as in cortex, plus threshold adaptation.
+2. **Neurons that fire together form loops.** The approach neurons wired to each other and kept firing with no input. **Synaptic scaling** (a fixed input budget per neuron) fixed it. It's competition for resources: "Consume" at the synapse level.
+3. **Right after learning, the brain is over-excited; sleep cleans it up.** Sleep removed the noise and kept the memory.
+4. **Without consolidation, new learning erased old learning.** Making strong synapses more stable during sleep ("big spines last") fixed it.
+5. **"Use it or lose it" has a cost.** B's paths were partly pruned before B was ever learned. This is the critical-period effect, and it needs tuning.
+
+### Timing test: cause → effect, not just "together" (`experiments/timing_test.py`)
+
+Same newborn, one trial each. Each protocol has 75 ms of smell, 50 ms of sugar and 25 ms of overlap. **Only the order differs.**
+
+| Protocol | A response after sleep (newborn ≈ 13) | Strength A → approach (newborn 0.05) |
+|---|---|---|
+| **Forward** (smell → sugar) | **288** | **0.26** |
+| Backward (sugar → smell) | 19 | 0.07 |
+| Unpaired (1 s apart) | 15 | 0.07 |
+
+The results hold across 3 seeds. ✅ **Omega learns that A *causes* sugar only when A comes first.** The same events in the reverse order teach almost nothing. Like the fly, backward pairing gives weak or no learning.
+
+**Lesson: a fair test matters.** The first version gave the backward trial twice as much sugar. The result looked like backward learning (4,000+ spikes), but it was really the approach neurons wiring into a loop. Once every protocol had the same sugar and overlap, the order effect was clean.
+
+### Known issues / next
+
+- **Approach → approach loops strengthen in every protocol** (0.05 → 0.16–0.31) because sugar makes those neurons fire together. Sleep keeps it in check for now, but it's a recurring risk.
+- After learning B, A's response also rose (380 → 840). The approach group may be getting generally more excitable. Watch for this.
+- Only one value channel (sugar). Backward pairing gives "nothing", not the fly's opposite ("relief") learning. That would need a second channel (danger/relief).
+- Reconsolidation (unlock a link when its expected effect fails) is not implemented yet.
+- Inhibitory synapses don't learn yet.
+
 ## Open questions
 
 - Which brain parts and rules go into the seed genome, and which are left for evolution to find?
